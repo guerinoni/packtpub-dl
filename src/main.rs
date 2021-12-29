@@ -23,6 +23,17 @@ struct Data {
     access: String,
 }
 
+#[derive(serde::Deserialize)]
+struct Book {
+    data: Vec<BookInfo>
+}
+
+#[derive(serde::Deserialize)]
+struct BookInfo {
+    #[serde(rename = "productId")]
+    product_id: String,
+}
+
 #[tokio::main]
 async fn main() -> Result<(), reqwest::Error> {
     let email = "guerinoni.federico@gmail.com";
@@ -47,8 +58,8 @@ async fn main() -> Result<(), reqwest::Error> {
     // TODO: make offset and limit configurable
     let url = "https://services.packtpub.com/entitlements-v1/users/me/products?sort=createdAt:DESC&offset=0&limit=1";
     let req = client.get(url).headers(headers).send().await?;
-    let t = req.text().await?;
-    println!("{}", t);
+    let t = req.json::<Book>().await?;
+    // let product = t.data[0].product_id;
 
     Ok(())
 }
