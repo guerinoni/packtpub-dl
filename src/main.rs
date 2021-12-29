@@ -27,8 +27,6 @@ struct Data {
 async fn main() -> Result<(), reqwest::Error> {
     let email = "guerinoni.federico@gmail.com";
     let password = "frac.maff1juft9VEEP";
-    // let header = "User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36, Authorization:";
-
     let url = "https://services.packtpub.com/auth-v1/users/tokens";
     let mut map = std::collections::HashMap::new();
     map.insert("username", email);
@@ -36,6 +34,21 @@ async fn main() -> Result<(), reqwest::Error> {
     let client = reqwest::Client::new();
     let post = client.post(url).json(&map).send().await?;
     let j = post.json::<UserInfo>().await?;
-    println!("token ok {}", j.data.access);
+    let mut token = String::from("Bearer ");
+    token.push_str(j.data.access.as_str());
+
+    let mut headers = reqwest::header::HeaderMap::new();
+    headers.insert("User-Agent", reqwest::header::HeaderValue::from_static("Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36"));
+    headers.insert(
+        "Authorization",
+        reqwest::header::HeaderValue::from_str(&token).unwrap(),
+    );
+
+    // TODO: make offset and limit configurable
+    let url = "https://services.packtpub.com/entitlements-v1/users/me/products?sort=createdAt:DESC&offset=0&limit=1";
+    let req = client.get(url).headers(headers).send().await?;
+    let t = req.text().await?;
+    println!("{}", t);
+
     Ok(())
 }
