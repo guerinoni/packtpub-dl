@@ -1,18 +1,3 @@
-// # this is base url where i do the requests
-// BASE_URL = "https://services.packtpub.com/"
-
-// # URL to request jwt token, params by post are user and pass, return jwt token
-// AUTH_ENDPOINT = "auth-v1/users/tokens"
-
-// # URL to get all your books, two params that i change are offset and limit, method GET
-// PRODUCTS_ENDPOINT = "entitlements-v1/users/me/products?sort=createdAt:DESC&offset={offset}&limit={limit}"
-
-// # URL to get types , param is  book id, method GET
-// URL_BOOK_TYPES_ENDPOINT = "products-v1/products/{book_id}/types"
-
-// # URL to get url file to download, params are book id and format of the file (can be pdf, epub, etc..), method GET
-// URL_BOOK_ENDPOINT = "products-v1/products/{book_id}/files/{format}"
-
 use futures_util::StreamExt;
 use std::io::Write;
 
@@ -43,7 +28,14 @@ struct DownloadUrl {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), reqwest::Error> {
+async fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() < 3 {
+        println!("expected username password as arguments");
+        return;
+    }
+
+    println!("{:?}", args);
     let email = "guerinoni.federico@gmail.com";
     let password = "frac.maff1juft9VEEP";
     let url = "https://services.packtpub.com/auth-v1/users/tokens";
@@ -51,8 +43,8 @@ async fn main() -> Result<(), reqwest::Error> {
     map.insert("username", email);
     map.insert("password", password);
     let client = reqwest::Client::new();
-    let post = client.post(url).json(&map).send().await?;
-    let j = post.json::<UserInfo>().await?;
+    let post = client.post(url).json(&map).send().await.map_err(|e|e.to_string()).unwrap();
+    let j = post.json::<UserInfo>().await.map_err(|e|e.to_string()).unwrap();
     let mut token = String::from("Bearer ");
     token.push_str(j.data.access.as_str());
 
@@ -65,18 +57,18 @@ async fn main() -> Result<(), reqwest::Error> {
 
     // TODO: make offset and limit configurable
     let url = "https://services.packtpub.com/entitlements-v1/users/me/products?sort=createdAt:DESC&offset=0&limit=1";
-    let req = client.get(url).headers(headers.clone()).send().await?;
-    let t = req.json::<Book>().await?;
+    let req = client.get(url).headers(headers.clone()).send().await.map_err(|e|e.to_string()).unwrap();
+    let t = req.json::<Book>().await.map_err(|e|e.to_string()).unwrap();
 
     // TODO: make pdf configurable?
     let url = format!(
         "https://services.packtpub.com/products-v1/products/{}/files/pdf",
         t.data[0].product_id
     );
-    let res = client.get(url).headers(headers).send().await?;
-    let t = res.json::<DownloadUrl>().await?;
+    let res = client.get(url).headers(headers).send().await.map_err(|e|e.to_string()).unwrap();
+    let t = res.json::<DownloadUrl>().await.map_err(|e|e.to_string()).unwrap();
 
-    let response = client.get(t.data).send().await?;
+    let response = client.get(t.data).send().await.map_err(|e|e.to_string()).unwrap();
     let size = response
         .content_length()
         .ok_or("failed to get content size")
@@ -97,6 +89,4 @@ async fn main() -> Result<(), reqwest::Error> {
         let new = std::cmp::min(downloaded + (chunk.len() as u64), size);
         downloaded = new;
     }
-
-    Ok(())
 }
