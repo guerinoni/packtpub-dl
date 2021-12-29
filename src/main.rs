@@ -35,9 +35,9 @@ async fn main() {
         return;
     }
 
-    println!("{:?}", args);
-    let email = "guerinoni.federico@gmail.com";
-    let password = "frac.maff1juft9VEEP";
+    let email = args[1].as_str();
+    let password = args[2].as_str();
+
     let url = "https://services.packtpub.com/auth-v1/users/tokens";
     let mut map = std::collections::HashMap::new();
     map.insert("username", email);
