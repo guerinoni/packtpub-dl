@@ -1,17 +1,8 @@
 use futures_util::StreamExt;
 use reqwest::header::{HeaderMap, HeaderValue};
-use std::collections::HashMap;
 use std::io::Write;
 
-#[derive(serde::Deserialize)]
-struct UserInfo {
-    data: Data,
-}
-
-#[derive(serde::Deserialize)]
-struct Data {
-    access: String,
-}
+mod user;
 
 #[derive(serde::Deserialize)]
 struct Book {
@@ -29,22 +20,6 @@ struct DownloadUrl {
     data: String,
 }
 
-async fn fetch_user_token(
-    args: Vec<String>,
-    client: &reqwest::Client,
-) -> Result<String, reqwest::Error> {
-    let url = "https://services.packtpub.com/auth-v1/users/tokens";
-    let hm = HashMap::from([
-        ("username", args[1].as_str()),
-        ("password", args[2].as_str()),
-    ]);
-
-    let res = client.post(url).json(&hm).send().await?;
-    let info = res.json::<UserInfo>().await?;
-    let token = String::from("Bearer ") + info.data.access.as_str();
-    Ok(token)
-}
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().collect();
@@ -54,7 +29,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let client = reqwest::Client::new();
-    let token = fetch_user_token(args, &client).await?;
+    let token = user::fetch_token(args, &client).await?;
     let mut headers = HeaderMap::new();
     headers.insert("User-Agent", HeaderValue::from_static("Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36"));
     headers.insert("Authorization", HeaderValue::from_str(&token).unwrap());
