@@ -1,9 +1,8 @@
 [package]
 name = "packtpub-dl"
+authors = ["Federico Guerinoni <guerinoni.federico@gmail.com>"]
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 reqwest = { version = "0.11.8", features = ["json", "stream"] }

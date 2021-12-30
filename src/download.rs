@@ -1,6 +1,6 @@
 use crate::books::BookInfo;
 use futures_util::StreamExt;
-use std::io::Write;
+use tokio::io::AsyncWriteExt;
 
 pub async fn download(
     url: &str,
@@ -10,9 +10,9 @@ pub async fn download(
     let res = client.get(url).send().await?;
     let size = res.content_length().unwrap();
     let filename = format!("{}.pdf", book_info.product_name);
-    let mut file = std::fs::File::create(filename)
-        .or(Err("failed to create file"))
-        .unwrap();
+    let mut file = tokio::fs::File::create(filename.clone())
+        .await
+        .expect("error creating file");
     let mut downloaded: u64 = 0;
     let mut stream = res.bytes_stream();
 
@@ -20,9 +20,8 @@ pub async fn download(
         let chunk = item
             .or(Err(format!("error while downloading file")))
             .unwrap();
-        file.write(&chunk)
-            .or(Err(format!("error while writing to file")))
-            .unwrap();
+
+        file.write_all(&chunk).await.unwrap();
         downloaded = std::cmp::min(downloaded + (chunk.len() as u64), size);
     }
 
