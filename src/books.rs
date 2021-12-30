@@ -44,18 +44,8 @@ pub async fn fetch_download_url_for(
         book_info.product_id
     );
     let headers = get_headers(token);
-    let res = client
-        .get(url)
-        .headers(headers)
-        .send()
-        .await
-        .map_err(|e| e.to_string())
-        .unwrap();
-    let t = res
-        .json::<DownloadUrl>()
-        .await
-        .map_err(|e| e.to_string())
-        .unwrap();
+    let res = client.get(url).headers(headers).send().await?;
+    let t = res.json::<DownloadUrl>().await?;
 
     Ok(t.data)
 }
