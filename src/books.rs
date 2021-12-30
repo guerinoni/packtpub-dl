@@ -53,6 +53,6 @@ pub async fn fetch_download_url_for(
 fn get_headers(token: &str) -> HeaderMap {
     let mut headers = HeaderMap::new();
     headers.insert("User-Agent", HeaderValue::from_static("Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36"));
-    headers.insert("Authorization", HeaderValue::from_str(&token).unwrap());
+    headers.insert("Authorization", HeaderValue::from_str(token).unwrap());
     headers
 }

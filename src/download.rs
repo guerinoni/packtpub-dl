@@ -18,7 +18,7 @@ pub async fn download(
 
     while let Some(item) = stream.next().await {
         let chunk = item
-            .or(Err(format!("error while downloading file")))
+            .map_err(|_| "error while downloading file".to_string())
             .unwrap();
 
         file.write_all(&chunk).await.unwrap();
