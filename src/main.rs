@@ -15,6 +15,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let token = user::fetch_token(args, &client).await?;
     let books = books::fetch_books(&token, &client).await?;
+    if books.is_empty() {
+        println!("no books available for download :(");
+        return Ok(());
+    }
+
     let download_url = books::fetch_download_url_for(&token, &books[0].data[0], &client).await?;
     download(&download_url, &books[0].data[0], &client).await?;
     Ok(())

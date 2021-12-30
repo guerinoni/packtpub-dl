@@ -21,7 +21,7 @@ pub async fn fetch_books(
     // TODO: make offset and limit configurable
     // TODO: take latest from the list and not only one...
     // HACK: print the list and let user choiches
-    let url = "https://services.packtpub.com/entitlements-v1/users/me/products?sort=releaseDate:DESC&offset=0&limit=5";
+    let url = "https://services.packtpub.com/entitlements-v1/users/me/products?sort=createdAt:DESC&offset=0&limit=1";
     let req = client.get(url).headers(get_headers(token)).send().await?;
     let t = req.json::<Book>().await?;
 
